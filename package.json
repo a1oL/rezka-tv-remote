@@ -1,0 +1,24 @@
+{
+  "name": "rezka-tv-remote",
+  "version": "1.0.0",
+  "description": "Samsung Tizen TV remote spatial navigation for rezka.ag through TizenBrew.",
+  "packageType": "mods",
+  "appName": "REZKA TV Remote",
+  "websiteURL": "https://rezka.ag/",
+  "main": "index.js",
+  "evaluateScriptOnDocumentStart": true,
+  "keys": [
+    "MediaPlay",
+    "MediaPause",
+    "MediaPlayPause",
+    "MediaFastForward",
+    "MediaRewind"
+  ],
+  "license": "MIT",
+  "keywords": [
+    "tizenbrew",
+    "samsung-tv",
+    "remote-control",
+    "spatial-navigation"
+  ]
+}
