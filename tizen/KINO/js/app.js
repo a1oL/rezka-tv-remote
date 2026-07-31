@@ -79,14 +79,27 @@
         }
     }
 
+    function isRealTizenBrewApp(app) {
+        var name = String(app.name || '').toLowerCase();
+        var id = String(app.id || '');
+
+        if (name.indexOf('installer') !== -1 || id.toLowerCase().indexOf('installer') !== -1) {
+            return false;
+        }
+
+        if (id === TIZENBREW_APP_ID || /\.TizenBrewStandalone$/i.test(id)) {
+            return true;
+        }
+
+        return name === 'tizenbrew' || name === 'tizenbrewnextgeneration';
+    }
+
     function discoverTizenBrew() {
         try {
             tizen.application.getAppsInfo(function (apps) {
                 var match = null;
                 for (var i = 0; i < apps.length; i += 1) {
-                    var name = String(apps[i].name || '').toLowerCase();
-                    var id = String(apps[i].id || '');
-                    if (id === TIZENBREW_APP_ID || name.indexOf('tizenbrew') !== -1) {
+                    if (isRealTizenBrewApp(apps[i])) {
                         match = apps[i];
                         break;
                     }
@@ -96,8 +109,8 @@
                     launchWithId(match.id, false);
                 } else {
                     setStatus(
-                        'TizenBrew nav atrasts.',
-                        'Vispirms televizorā uzinstalē TizenBrew un tajā pievieno moduli a1oL/rezka-tv-remote. RETURN aizver šo logu.'
+                        'TizenBrew aplikācija nav atrasta.',
+                        'KINO vairs neatvērs TizenBrew Installer. Pārbaudi, vai televizorā ir uzinstalēta pati TizenBrew aplikācija un tajā pievienots modulis a1oL/rezka-tv-remote. RETURN aizver šo logu.'
                     );
                 }
             }, function (error) {
@@ -112,7 +125,7 @@
         var message = error && error.message ? error.message : String(error || 'Nezināma kļūda');
         setStatus(
             'KINO neizdevās atvērt.',
-            'Pārbaudi, vai TizenBrew un modulis a1oL/rezka-tv-remote ir uzinstalēti. Kļūda: ' + message
+            'Pārbaudi, vai ir uzinstalēta pati TizenBrew aplikācija (nevis tikai TizenBrew Installer) un modulis a1oL/rezka-tv-remote. Kļūda: ' + message
         );
     }
 
