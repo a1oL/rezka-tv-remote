@@ -2,9 +2,6 @@
     'use strict';
 
     var TIZENBREW_APP_ID = 'xvvl3S1bvH.TizenBrewStandalone';
-    var MODULE_NAME = 'rezka-tv-remote';
-    var MODULE_TYPE = 'a1oL';
-    var OPERATION = 'http://samsung.com/appcontrol/operation/eden_resume';
     var launched = false;
 
     function byId(id) {
@@ -12,8 +9,17 @@
     }
 
     function setStatus(message, details) {
-        byId('status').textContent = message;
+        var statusNode = byId('status');
         var detailsNode = byId('details');
+
+        if (statusNode) {
+            statusNode.textContent = message;
+        }
+
+        if (!detailsNode) {
+            return;
+        }
+
         if (details) {
             detailsNode.textContent = details;
             detailsNode.hidden = false;
@@ -31,36 +37,30 @@
         }
     }
 
-    function createAppControl() {
-        var payload = JSON.stringify({
-            moduleName: MODULE_NAME,
-            moduleType: MODULE_TYPE,
-            args: 'source=kino-launcher'
-        });
-
-        return new tizen.ApplicationControl(
-            OPERATION,
-            null,
-            null,
-            null,
-            [new tizen.ApplicationControlData('kino.module', [payload])]
+    function showLaunchError(error) {
+        var message = error && error.message ? error.message : String(error || 'Nezināma kļūda');
+        setStatus(
+            'KINO neizdevās atvērt.',
+            'Pārbaudi, vai televizorā ir uzinstalēta pati TizenBrew aplikācija un TizenBrew iestatījumos Auto Launch ir izvēlēts KINO modulis. Kļūda: ' + message
         );
     }
 
-    function launchWithId(appId, allowDiscovery) {
+    function launchTizenBrew(appId, allowDiscovery) {
         if (launched) {
             return;
         }
 
-        setStatus('Atver KINO…');
+        setStatus(
+            'Atver KINO…',
+            'TizenBrew iestatījumos Auto Launch jābūt izvēlētam KINO modulim.'
+        );
 
         try {
-            tizen.application.launchAppControl(
-                createAppControl(),
+            tizen.application.launch(
                 appId,
                 function () {
                     launched = true;
-                    setTimeout(exitLauncher, 700);
+                    setTimeout(exitLauncher, 1200);
                 },
                 function (error) {
                     if (allowDiscovery) {
@@ -82,8 +82,9 @@
     function isRealTizenBrewApp(app) {
         var name = String(app.name || '').toLowerCase();
         var id = String(app.id || '');
+        var lowerId = id.toLowerCase();
 
-        if (name.indexOf('installer') !== -1 || id.toLowerCase().indexOf('installer') !== -1) {
+        if (name.indexOf('installer') !== -1 || lowerId.indexOf('installer') !== -1) {
             return false;
         }
 
@@ -98,7 +99,9 @@
         try {
             tizen.application.getAppsInfo(function (apps) {
                 var match = null;
-                for (var i = 0; i < apps.length; i += 1) {
+                var i;
+
+                for (i = 0; i < apps.length; i += 1) {
                     if (isRealTizenBrewApp(apps[i])) {
                         match = apps[i];
                         break;
@@ -106,27 +109,18 @@
                 }
 
                 if (match) {
-                    launchWithId(match.id, false);
-                } else {
-                    setStatus(
-                        'TizenBrew aplikācija nav atrasta.',
-                        'KINO vairs neatvērs TizenBrew Installer. Pārbaudi, vai televizorā ir uzinstalēta pati TizenBrew aplikācija un tajā pievienots modulis a1oL/rezka-tv-remote. RETURN aizver šo logu.'
-                    );
+                    launchTizenBrew(match.id, false);
+                    return;
                 }
-            }, function (error) {
-                showLaunchError(error);
-            });
+
+                setStatus(
+                    'TizenBrew aplikācija nav atrasta.',
+                    'Uzinstalē pašu TizenBrew aplikāciju. TizenBrew Installer nav tas pats. RETURN aizver šo logu.'
+                );
+            }, showLaunchError);
         } catch (error) {
             showLaunchError(error);
         }
-    }
-
-    function showLaunchError(error) {
-        var message = error && error.message ? error.message : String(error || 'Nezināma kļūda');
-        setStatus(
-            'KINO neizdevās atvērt.',
-            'Pārbaudi, vai ir uzinstalēta pati TizenBrew aplikācija (nevis tikai TizenBrew Installer) un modulis a1oL/rezka-tv-remote. Kļūda: ' + message
-        );
     }
 
     function onKeyDown(event) {
@@ -145,7 +139,7 @@
             return;
         }
 
-        launchWithId(TIZENBREW_APP_ID, true);
+        launchTizenBrew(TIZENBREW_APP_ID, true);
     }
 
     if (document.readyState === 'loading') {
