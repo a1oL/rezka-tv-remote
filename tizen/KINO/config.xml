@@ -2,7 +2,7 @@
 <widget xmlns:tizen="http://tizen.org/ns/widgets"
         xmlns="http://www.w3.org/ns/widgets"
         id="https://a1ol.github.io/kino-launcher"
-        version="1.0.0"
+        version="1.0.1"
         viewmodes="maximized">
     <tizen:application id="A1KINO2026.KINO" package="A1KINO2026" required_version="3.0"/>
     <content src="index.html"/>
